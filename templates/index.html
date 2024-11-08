@@ -92,7 +92,8 @@
 <body>
     <h1>Voice Story Generator</h1>
     <div>
-        <button onclick="startRecording()">Record Voice</button>
+        <button onclick="startRecording()">Start Recording</button>
+        <button onclick="stopRecording()">Stop Recording</button>
         <button onclick="generateStory()">Generate and Play Story</button>
     </div>
 
@@ -101,18 +102,46 @@
     <div class="audio-container" id="audio-container"></div>
 
     <script>
-        let audioPlayer = null;
+        let mediaRecorder;
+        let audioChunks = [];
 
         async function startRecording() {
-            const response = await fetch('/record', { method: 'POST' });
-            const data = await response.json();
-            alert("Voice recorded: " + data.filename);
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            mediaRecorder.start();
+            alert("Recording started...");
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio_file', audioBlob, 'user_voice_sample.wav');
+                
+                // Send the recorded audio to the server
+                const response = await fetch('/upload_audio', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("Voice recorded and uploaded successfully.");
+                } else {
+                    document.getElementById("error").innerText = "Error uploading audio.";
+                    document.getElementById("error").style.display = "block";
+                }
+            };
+            alert("Recording stopped.");
         }
 
         async function generateStory() {
-            document.getElementById("loading").style.display = "block"; // Show loading text
-            document.getElementById("error").style.display = "none"; // Hide error text
-            document.getElementById("audio-container").innerHTML = ''; // Clear previous audio player
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("error").style.display = "none";
+            document.getElementById("audio-container").innerHTML = '';
 
             const response = await fetch('/generate_story', { method: 'POST' });
 
@@ -127,39 +156,12 @@
             const audioUrl = URL.createObjectURL(audioBlob);
 
             // Create an audio player and play the story
-            audioPlayer = document.createElement('audio');
-            audioPlayer.controls = false; // We'll use custom controls
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true;
             audioPlayer.src = audioUrl;
             document.getElementById("audio-container").appendChild(audioPlayer);
 
-            // Create custom controls
-            const controls = document.createElement('div');
-            controls.classList.add('audio-controls');
-
-            const playButton = document.createElement('button');
-            playButton.textContent = "Play";
-            playButton.onclick = () => audioPlayer.play();
-            
-            const pauseButton = document.createElement('button');
-            pauseButton.textContent = "Pause";
-            pauseButton.onclick = () => audioPlayer.pause();
-
-            const stopButton = document.createElement('button');
-            stopButton.textContent = "Stop";
-            stopButton.onclick = () => {
-                audioPlayer.pause();
-                audioPlayer.currentTime = 0; // Reset to the beginning
-            };
-
-            controls.appendChild(playButton);
-            controls.appendChild(pauseButton);
-            controls.appendChild(stopButton);
-            document.getElementById("audio-container").appendChild(controls);
-
-            // Play the audio automatically after generation
-            audioPlayer.play();
-
-            document.getElementById("loading").style.display = "none"; // Hide loading text
+            document.getElementById("loading").style.display = "none";
         }
     </script>
 </body>
