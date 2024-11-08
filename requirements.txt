@@ -1,6 +1,8 @@
-Flask==2.0.1
+Flask>=2.2
+Werkzeug>=2.2
 sounddevice==0.4.4
-scipy==1.7.1
+scipy
 requests==2.26.0
 python-dotenv==0.19.0
 playsound==1.2.2
+gunicorn
