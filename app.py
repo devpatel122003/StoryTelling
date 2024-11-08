@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file, Response
 import scipy.io.wavfile as wav
 import requests
 import time
@@ -112,15 +112,11 @@ def generate_story():
     if not audio_content:
         return jsonify({"error": "TTS generation failed"}), 500
 
-    # Save audio
-    audio_filename = "story_audio.mp3"
-    with open(audio_filename, "wb") as audio_file:
-        audio_file.write(audio_content)
-
-    # Delete the cloned voice
+    # Delete the cloned voice after generating the story
     delete_cloned_voice(voice_id)
 
-    return send_file(audio_filename, as_attachment=True)
+    # Send audio content directly to client
+    return Response(audio_content, mimetype="audio/mpeg")
 
 if __name__ == '__main__':
     app.run(debug=True)
