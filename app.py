@@ -1,29 +1,20 @@
-from flask import Flask, render_template, jsonify, send_file
-import sounddevice as sd
+from flask import Flask, render_template, jsonify, request, send_file
 import scipy.io.wavfile as wav
 import requests
 import time
 import os
+import logging
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-from dotenv import load_dotenv
-
 # Load environment variables from .env file
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Get the API keys from the environment variables
 API_USER_ID = os.getenv("USER_ID")
 API_KEY = os.getenv("API_KEY")
-
-# Record user's voice
-def record_voice(filename="user_voice_sample.wav", duration=5, sample_rate=44100):
-    print("Recording voice sample... Please speak.")
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1)
-    sd.wait()
-    wav.write(filename, sample_rate, recording)
-    print("Recording completed and saved as", filename)
-    return filename
 
 # Clone voice
 def clone_voice(file_path, voice_name="user_cloned_voice"):
@@ -91,11 +82,12 @@ def delete_cloned_voice(voice_id):
 def index():
     return render_template('index.html')
 
-@app.route('/record', methods=['POST'])
-def record():
-    duration = 5  # seconds
+# Route to upload audio file from client-side recording
+@app.route('/upload_audio', methods=['POST'])
+def upload_audio():
+    audio_file = request.files['audio_file']
     filename = "user_voice_sample.wav"
-    record_voice(filename, duration)
+    audio_file.save(filename)
     return jsonify({"filename": filename})
 
 @app.route('/generate_story', methods=['POST'])
@@ -113,16 +105,6 @@ def generate_story():
     # Story text
     story_text = (
         "In a quiet town by the sea, there was an old lighthouse that no longer served its purpose. "
-        "The keeper, a man named Elias, had long since passed, and the light had dimmed for the last "
-        "time many years ago. But every evening, as the sun dipped below the horizon, a young girl "
-        "named Lyla would walk to the lighthouse, sit on the rocks, and gaze at the ocean. "
-        "One evening, as the sky turned violet, Lyla noticed something unusual—a soft, glowing light coming from the "
-        "lighthouse window. Curious, she approached and found the door slightly ajar. Inside, the light flickered "
-        "on its own, as if the lighthouse keeper had never left. Lyla stepped forward, and a voice, gentle as the wind, "
-        "whispered from the shadows: “The light only shines when there is someone who believes.” Lyla, filled with wonder, "
-        "smiled. She had always believed the lighthouse was magical. She made a promise to visit every night, to believe "
-        "in the stories of the sea, and to keep the light shining. From then on, whenever she was near, the lighthouse would glow, "
-        "guiding ships home, and lighting the path for those who still believed in the magic of the world."
     )
 
     # Generate TTS
@@ -142,4 +124,3 @@ def generate_story():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
