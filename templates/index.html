@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Story Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2C3E50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        button {
+            font-size: 1.1rem;
+            background-color: #3498db;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 15px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            background-color: #1abc9c;
+        }
+
+        .audio-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .audio-container audio {
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .audio-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .loading {
+            display: none;
+            font-size: 1.2rem;
+            color: #3498db;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .error {
+            font-size: 1.2rem;
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voice Story Generator</h1>
+    <div>
+        <button onclick="startRecording()">Record Voice</button>
+        <button onclick="generateStory()">Generate and Play Story</button>
+    </div>
+
+    <div class="loading" id="loading">Generating story...</div>
+    <div class="error" id="error"></div>
+    <div class="audio-container" id="audio-container"></div>
+
+    <script>
+        let audioPlayer = null;
+
+        async function startRecording() {
+            const response = await fetch('/record', { method: 'POST' });
+            const data = await response.json();
+            alert("Voice recorded: " + data.filename);
+        }
+
+        async function generateStory() {
+            document.getElementById("loading").style.display = "block"; // Show loading text
+            document.getElementById("error").style.display = "none"; // Hide error text
+            document.getElementById("audio-container").innerHTML = ''; // Clear previous audio player
+
+            const response = await fetch('/generate_story', { method: 'POST' });
+
+            if (!response.ok) {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("error").innerText = "Error generating story.";
+                document.getElementById("error").style.display = "block";
+                return;
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Create an audio player and play the story
+            audioPlayer = document.createElement('audio');
+            audioPlayer.controls = false; // We'll use custom controls
+            audioPlayer.src = audioUrl;
+            document.getElementById("audio-container").appendChild(audioPlayer);
+
+            // Create custom controls
+            const controls = document.createElement('div');
+            controls.classList.add('audio-controls');
+
+            const playButton = document.createElement('button');
+            playButton.textContent = "Play";
+            playButton.onclick = () => audioPlayer.play();
+            
+            const pauseButton = document.createElement('button');
+            pauseButton.textContent = "Pause";
+            pauseButton.onclick = () => audioPlayer.pause();
+
+            const stopButton = document.createElement('button');
+            stopButton.textContent = "Stop";
+            stopButton.onclick = () => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0; // Reset to the beginning
+            };
+
+            controls.appendChild(playButton);
+            controls.appendChild(pauseButton);
+            controls.appendChild(stopButton);
+            document.getElementById("audio-container").appendChild(controls);
+
+            // Play the audio automatically after generation
+            audioPlayer.play();
+
+            document.getElementById("loading").style.display = "none"; // Hide loading text
+        }
+    </script>
+</body>
+</html>
