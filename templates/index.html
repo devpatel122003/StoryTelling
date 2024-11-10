@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Story Generator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -13,157 +15,372 @@
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            padding: 20px;
+            background: linear-gradient(135deg, #e0f2fe, #bfdbfe, #3b82f6, #2563eb);
+            background-size: 400% 400%;
+            animation: backgroundAnimation 12s ease infinite;
+            padding: 1rem;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: popUp 1s ease forwards;
+            transform: translateY(-20px);
+        }
+
+        @keyframes popUp {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
 
         h1 {
+            color: #1e40af;
             font-size: 2.5rem;
-            color: #2C3E50;
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(30, 64, 175, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
         }
 
-        button {
-            font-size: 1.1rem;
-            background-color: #3498db;
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px rgba(30, 64, 175, 0.3); }
+            100% { text-shadow: 0 0 20px rgba(30, 64, 175, 0.7); }
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #3b82f6;
+            animation: fadeInUp 0.8s forwards;
+            text-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            background-color: #3b82f6;
             color: white;
-            padding: 15px 25px;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 1.5rem;
             cursor: pointer;
-            margin: 15px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-            transform: scale(1.05);
-        }
-
-        button:active {
-            background-color: #1abc9c;
-        }
-
-        .audio-container {
-            margin-top: 30px;
+            transition: background-color 0.3s, transform 0.3s;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
         }
 
-        .audio-container audio {
-            width: 80%;
-            max-width: 600px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .btn:hover {
+            background-color: #2563eb;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
         }
 
-        .audio-controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.recording {
+            background-color: #ef4444;
+            animation: pulse 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); }
+            100% { transform: scale(1.1); box-shadow: 0 0 20px rgba(239, 68, 68, 1); }
+        }
+
+        .genre-selection {
+            display: none;
+            margin-top: 1.5rem;
+            animation: slideUp 0.5s forwards;
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .genre-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .genre-btn:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .genre-btn:active {
+            transform: scale(0.95);
         }
 
         .loading {
             display: none;
-            font-size: 1.2rem;
-            color: #3498db;
-            text-align: center;
-            margin-top: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .story-ready {
+            display: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .story-ready.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+            animation: popUp 0.5s ease forwards;
+        }
+
+        .sparkle {
+            font-size: 3rem;
+            color: #fbbf24;
+            animation: sparkle 1.5s infinite, glow 3s infinite;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 1rem;
         }
 
         .error {
-            font-size: 1.2rem;
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 20px;
+            color: #ef4444;
+            margin-top: 1rem;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
         }
     </style>
 </head>
+
 <body>
-    <h1>Voice Story Generator</h1>
-    <div>
-        <button onclick="startRecording()">Start Recording</button>
-        <button onclick="stopRecording()">Stop Recording</button>
-        <button onclick="generateStory()">Generate and Play Story</button>
+    <div class="card">
+        <h1>Voice Story Generator</h1>
+        <div id="questionContainer">
+            <p class="question" id="currentQuestion"></p>
+            <button class="btn" id="recordButton">
+                <span id="recordIcon">🎙️</span>
+            </button>
+        </div>
+        <div class="genre-selection" id="genreSelection">
+            <p>Select a genre for your story:</p>
+            <button class="genre-btn" data-genre="fantasy">Fantasy</button>
+            <button class="genre-btn" data-genre="scifi">Sci-Fi</button>
+            <button class="genre-btn" data-genre="mystery">Mystery</button>
+            <button class="genre-btn" data-genre="romance">Romance</button>
+        </div>
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Crafting your story...</p>
+        </div>
+        <div class="story-ready" id="storyReady">
+            <div class="sparkle">✨</div>
+            <p>Your story is ready!</p>
+            <audio id="storyAudio" controls></audio>
+        </div>
+        <p class="error" id="error"></p>
     </div>
 
-    <div class="loading" id="loading">Generating story...</div>
-    <div class="error" id="error"></div>
-    <div class="audio-container" id="audio-container"></div>
-
     <script>
+        const questions = [
+            "What is your name?",
+            "Where are you from?",
+            "What is your favorite hobby?",
+            "Tell us about a memorable experience."
+        ];
+
+        let currentQuestionIndex = 0;
         let mediaRecorder;
         let audioChunks = [];
+        let isRecording = false;
 
-        async function startRecording() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-            mediaRecorder.start();
-            alert("Recording started...");
+        const questionContainer = document.getElementById('questionContainer');
+        const currentQuestion = document.getElementById('currentQuestion');
+        const recordButton = document.getElementById('recordButton');
+        const recordIcon = document.getElementById('recordIcon');
+        const genreSelection = document.getElementById('genreSelection');
+        const loading = document.getElementById('loading');
+        const storyReady = document.getElementById('storyReady');
+        const storyAudio = document.getElementById('storyAudio');
+        const error = document.getElementById('error');
+
+        function updateQuestion() {
+            currentQuestion.textContent = questions[currentQuestionIndex];
+            currentQuestion.style.animation = 'none';
+            currentQuestion.offsetHeight; // Trigger reflow
+            currentQuestion.style.animation = null;
+        }
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.classList.add('recording');
+                    recordIcon.textContent = '⏹️';
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    showError('Error accessing microphone. Please check your permissions.');
+                });
         }
 
         function stopRecording() {
             mediaRecorder.stop();
-            mediaRecorder.onstop = async () => {
+            isRecording = false;
+            recordButton.classList.remove('recording');
+            recordIcon.textContent = '🎙️';
+            mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const formData = new FormData();
-                formData.append('audio_file', audioBlob, 'user_voice_sample.wav');
-                
-                // Send the recorded audio to the server
-                const response = await fetch('/upload_audio', {
+                formData.append('audio_file', audioBlob, `answer_${currentQuestionIndex + 1}.wav`);
+
+                fetch('/upload_audio', {
                     method: 'POST',
                     body: formData
-                });
-
-                if (response.ok) {
-                    alert("Voice recorded and uploaded successfully.");
-                } else {
-                    document.getElementById("error").innerText = "Error uploading audio.";
-                    document.getElementById("error").style.display = "block";
-                }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error uploading audio');
+                        }
+                        if (currentQuestionIndex < questions.length - 1) {
+                            currentQuestionIndex++;
+                            updateQuestion();
+                        } else {
+                            showGenreSelection();
+                        }
+                        audioChunks = [];
+                    })
+                    .catch(err => {
+                        console.error('Error uploading audio:', err);
+                        showError('Error uploading audio. Please try again.');
+                    });
             };
-            alert("Recording stopped.");
         }
 
-        async function generateStory() {
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("error").style.display = "none";
-            document.getElementById("audio-container").innerHTML = '';
+        function showGenreSelection() {
+            questionContainer.style.display = 'none';
+            genreSelection.style.display = 'block';
+        }
 
-            const response = await fetch('/generate_story', { method: 'POST' });
+        function generateStory(genre) {
+            genreSelection.style.display = 'none';
+            loading.style.display = 'flex';
 
-            if (!response.ok) {
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("error").innerText = "Error generating story.";
-                document.getElementById("error").style.display = "block";
-                return;
+            fetch('/generate_story', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ genre: genre })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error generating story');
+                    }
+                    return response.blob();
+                })
+                .then(audioBlob => {
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    storyAudio.src = audioUrl;
+                    loading.style.display = 'none';
+                    storyReady.classList.add('show');
+                })
+                .catch(err => {
+                    console.error('Error generating story:', err);
+                    showError('Error generating story. Please try again.');
+                    loading.style.display = 'none';
+                });
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+            setTimeout(() => {
+                error.style.display = 'none';
+            }, 5000);
+        }
+
+        recordButton.addEventListener('click', () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
             }
+        });
 
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
+        genreSelection.addEventListener('click', (event) => {
+            if (event.target.classList.contains('genre-btn')) {
+                const genre = event.target.dataset.genre;
+                generateStory(genre);
+            }
+        });
 
-            // Create an audio player and play the story
-            const audioPlayer = document.createElement('audio');
-            audioPlayer.controls = true;
-            audioPlayer.src = audioUrl;
-            document.getElementById("audio-container").appendChild(audioPlayer);
-            audioPlayer.play();
-
-            document.getElementById("loading").style.display = "none";
-        }
+        updateQuestion();
     </script>
 </body>
+
 </html>
