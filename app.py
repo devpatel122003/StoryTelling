@@ -89,11 +89,11 @@ def delete_cloned_voice(voice_id):
         "content-type": "application/json"
     }
     response = requests.delete(delete_url, headers=headers, json={"voice_id": voice_id})
-    if response.status_code == 204:
+    if response.status_code == 200:
         logger.info("Cloned voice deleted successfully")
     else:
         logger.error("Failed to delete cloned voice with status code: %d, response: %s", response.status_code, response.text)
-    return response.status_code == 204
+    return response.status_code == 200
 
 @app.route('/')
 def index():
