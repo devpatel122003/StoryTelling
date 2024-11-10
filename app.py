@@ -5,6 +5,8 @@ import time
 import os
 import logging
 from dotenv import load_dotenv
+from pydub import AudioSegment
+from moviepy.editor import concatenate_audioclips, AudioFileClip
 
 app = Flask(__name__)
 
@@ -82,18 +84,43 @@ def delete_cloned_voice(voice_id):
 def index():
     return render_template('index.html')
 
-# Route to upload audio file from client-side recording
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
+    # Ensure the uploads directory exists
+    upload_folder = 'uploads'
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+
     audio_file = request.files['audio_file']
-    filename = "user_voice_sample.wav"
-    audio_file.save(filename)
+    filename = audio_file.filename
+    audio_file.save(os.path.join(upload_folder, filename))  # Save audio to 'uploads' folder
     return jsonify({"filename": filename})
 
 @app.route('/generate_story', methods=['POST'])
 def generate_story():
-    # Clone the voice
-    manifest_url = clone_voice("user_voice_sample.wav")
+    genre = request.json.get('genre', 'fantasy')  # Default to fantasy if no genre is provided
+    
+    # Assume the answers are saved in the 'uploads' directory
+    answers = [
+        "uploads/answer_1.wav",
+        "uploads/answer_2.wav",
+        "uploads/answer_3.wav",
+        "uploads/answer_4.wav"
+    ]
+    
+    # Combine the audio files into one
+    combined_audio = AudioSegment.empty()
+    
+    # Loop through the audio files and combine them
+    for answer in answers:
+        audio = AudioSegment.from_file(answer)
+        combined_audio += audio
+
+    # Export the combined audio to a temporary file
+    combined_audio.export("combined_audio.wav", format="wav")
+    
+    # Clone the voice using the combined audio file
+    manifest_url = clone_voice("combined_audio.wav")  # Use the combined audio file
     if not manifest_url:
         return jsonify({"error": "Voice cloning initiation failed"}), 500
 
@@ -102,12 +129,9 @@ def generate_story():
     if not voice_id:
         return jsonify({"error": "Voice ID retrieval failed"}), 500
 
-    # Story text
-    story_text = (
-        "In a quiet town by the sea, there was an old lighthouse that no longer served its purpose. "
-    )
+    # Generate story based on genre
+    story_text = generate_story_text(genre)
 
-    # Generate TTS
     audio_content = generate_tts(story_text, voice_id)
     if not audio_content:
         return jsonify({"error": "TTS generation failed"}), 500
@@ -117,6 +141,17 @@ def generate_story():
 
     # Send audio content directly to client
     return Response(audio_content, mimetype="audio/mpeg")
+
+def generate_story_text(genre):
+    # This is a placeholder function. In a real application, you would use a more sophisticated
+    # method to generate a story based on the genre and the user's answers.
+    stories = {
+        "fantasy": "In a magical realm, a brave hero embarked on an epic quest...",
+        "scifi": "In the distant future, humanity faced its greatest challenge yet...",
+        "mystery": "The detective arrived at the scene, knowing this case would be unlike any other...",
+        "romance": "Their eyes met across the crowded room, and in that moment, everything changed..."
+    }
+    return stories.get(genre, "Once upon a time, in a land far, far away...")
 
 if __name__ == '__main__':
     app.run(debug=True)
