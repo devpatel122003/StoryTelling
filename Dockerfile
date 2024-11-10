@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # Install PortAudio
-RUN apt-get update && apt-get install -y portaudio19-dev
+RUN apt-get update && apt-get install -y portaudio19-dev ffmpeg
 
 # Set the working directory
 WORKDIR /app
