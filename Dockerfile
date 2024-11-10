@@ -20,5 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Set environment variables for ffmpeg and ffprobe (optional, if required)
 ENV PATH="/usr/local/bin:$PATH"
 
-# Command to run the app
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+# Command to run the app with Gunicorn, specifying graceful timeout and worker count
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--graceful-timeout", "120", "app:app"]
